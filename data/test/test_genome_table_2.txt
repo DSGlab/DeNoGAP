@@ -1,0 +1,8 @@
+#genome_name	species	abbreviation	genome_type	outgroup
+Pseudomonas syringae pv. tomato  DC3000	Pseudomonas syringae	PtoDC3000	reference	No
+Pseudomonas syringae pv. syringae B728a	Pseudomonas syringae	PsyB728a	query	No
+Pseudomonas syringae pv. phaseolicola 1448A	Pseudomonas syringae	Pph1448A	query	No
+Pseudomonas aeruginosa PAO1	Pseudomonas aeruginosa	PAO1	query	Yes
+Pseudomonas fluorescens Pf01	Pseudomonas fluorescens	Pf01	query	Yes
+Pseudomonas syringae pv. aesculi NCPPB3681	Pseudomonas syringae	Pae3681	query	No
+Pseudomonas syringae pv. aceris  M302273PT	Pseudomonas syringae	Pac302273	query	No
