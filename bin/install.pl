@@ -14,13 +14,35 @@ use Env;
 use FindBin qw($Bin);
 use Getopt::Long;
 
-my $HOME=undef;
+print "Set path to the installation directory for external program:\n";
 
-GetOptions('install_dir=s'=>\$HOME);
+my $HOME=<STDIN>;
 
 if(!defined($HOME)){
-   $HOME="../exe";
+  die "ERROR: Installation directory not defined or count not be found\n";
 }
+
+########## URL FOR EXTERNAL PROGRAM ########
+########## USER Can change this to get newer versions of the programs ######
+
+my $muscle="http://www.drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64.tar.gz";
+my $kalign="http://msa.sbc.su.se/downloads/kalign/current.tar.gz";
+my $mcl="http://micans.org/mcl/src/mcl-12-135.tar.gz";
+my $hmmer="http://selab.janelia.org/software/hmmer3/3.1b1/hmmer-3.1b1-linux-intel-x86_64.tar.gz";
+my $phylip="http://evolution.gs.washington.edu/phylip/download/phylip-3.695.tar.gz";
+my $glimmer="http://ccb.jhu.edu/software/glimmer/glimmer302b.tar.gz";
+my $prodigal="http://prodigal.googlecode.com/files/prodigal.v2_60.linux";
+my $fraggenescan="http://omics.informatics.indiana.edu/mg/get.php?software=FragGeneScan1.16.tar.gz";
+my $genemark="http://opal.biology.gatech.edu";
+my $sqlite="https://sqlite.org/2014/sqlite-autoconf-3080401.tar.gz";
+my $emboss="sudo apt-get install emboss";
+my $blast="ftp://ftp.ncbi.nlm.nih.gov/blast/executables/LATEST/ncbi-blast-2.2.29+-x64-linux.tar.gz";
+my $iprscan="ftp://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.9-50.0/interproscan-5.9-50.0-64-bit.tar.gz";
+my $iprscan_md="ftp://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.9-50.0/interproscan-5.9-50.0-64-bit.tar.gz.md5";
+
+####################################################################################################################
+
+######## Do not change anything beyond this line ###################################################################
 
 my @perl_std_module=("FindBin",
                      "Env",
@@ -49,34 +71,21 @@ my @interproscan_module=("CGI",
                          "XML::Parser",
                          "XML::Quote");
 
-my @iprscan_file=("ftp://ftp.ebi.ac.uk/pub/databases/interpro/iprscan/RELEASE/4.8/iprscan_v4.8.tar.gz",
-                  "ftp://ftp.ebi.ac.uk/pub/databases/interpro/iprscan/BIN/4.x/iprscan_bin4.x_Linux64.tar.gz",
-                  "ftp://ftp.ebi.ac.uk/pub/databases/interpro/iprscan/DATA/iprscan_DATA_43.1.tar.gz",
-                  "ftp://ftp.ebi.ac.uk/pub/databases/interpro/iprscan/DATA/iprscan_MATCH_DATA_43.1.tar.gz",
-                  "ftp://ftp.ebi.ac.uk/pub/databases/interpro/iprscan/DATA/iprscan_PTHR_DATA_38.0.tar.gz");
- 
-my $iprscan_file=\@iprscan_file;
-
-my %external_prog=('muscle'=>"http://www.drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64.tar.gz",
-                   'kalign'=>"http://msa.sbc.su.se/downloads/kalign/current.tar.gz", 
-                   'mcl'=>"http://micans.org/mcl/src/mcl-12-135.tar.gz", 
-                   'hmmer'=>"http://selab.janelia.org/software/hmmer3/3.1b1/hmmer-3.1b1-linux-intel-x86_64.tar.gz", 
-                   'phylip'=>"http://evolution.gs.washington.edu/phylip/download/phylip-3.695.tar.gz", 
-                   'glimmer'=>"http://ccb.jhu.edu/software/glimmer/glimmer302b.tar.gz", 
-                   'prodigal'=>"http://prodigal.googlecode.com/files/prodigal.v2_60.linux", 
-                   'fragscan'=>"http://omics.informatics.indiana.edu/mg/get.php?software=FragGeneScan1.16.tar.gz", 
-                   'genemark'=>"http://opal.biology.gatech.edu",
-                   'sqlite'=>"https://sqlite.org/2014/sqlite-autoconf-3080401.tar.gz", 
-                   'emboss'=>"sudo apt-get install emboss"#,
-                   'blast'=>"ftp://ftp.ncbi.nlm.nih.gov/blast/executables/LATEST/ncbi-blast-2.2.29+-x64-linux.tar.gz",
-                   'iprscan'=>$iprscan_file                   
+my %external_prog=('muscle'=>"$muscle",
+                   'kalign'=>"$kalign", 
+                   'mcl'=>"$mcl", 
+                   'hmmer'=>"$hmmer", 
+                   'phylip'=>"$phylip", 
+                   'glimmer'=>"$glimmer", 
+                   'prodigal'=>"$prodigal", 
+                   'fragscan'=>"$fraggenescan", 
+                   'genemark'=>"$genemark",
+                   'sqlite'=>"$sqlite", 
+                   'emboss'=>"$emboss",
+                   'blast'=>"$blast",
+                   'iprscan'=>"$iprscan",
+                   'iprscan_md'=>"$iprscan_md"              
                    );
-
-my %uniprot_db=('swissprot'=>"ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz");
-
-#my %apache_server=('source_file'=>"http://mirror.csclub.uwaterloo.ca/apache//httpd/httpd-2.4.9.tar.bz2",
-#                   'install_path'=>"");
-
 
 
 print "Checking if you have standard perl modules installed\n";
@@ -132,24 +141,6 @@ foreach my $mod(@interproscan_module){
          print "$mod already installed on your system\n\n";
        }
 }
-
-print "Downloading current release of Uniprot/SwissProt Database\n";
-
-foreach my $db_name(keys %uniprot_db){
-
-       print "Do you want to download current release of Uniprot/SwissProt database? (Y | N):";
-       my $download_sp=<STDIN>; 
-
-       if($download_sp eq "Y"){
-          print "Creating database directory for swissprot at $Bin/../data/SPROT_DB\n";
-          mkdir("$Bin/../data/SPROT_DB");
-          print "Downloading database file for SwissProt\n";
-          system("wget $uniprot_db{$db_name} -P $Bin/../data/SPROT_DB");
-          system("chmod -R 777 $Bin/../data/SPROT_DB");
-          system("tar -xvzf $Bin/../data/SPROT_DB/*.tar.gz -C $Bin/../data/SPROT_DB");          
-       }   
-}
-
 
 
 print "Checking if you have required external program installed\n";
@@ -589,7 +580,7 @@ foreach my $ext_prog(keys %external_prog){
 
      if($option_install eq "Y" or $option_install eq "y"){
 
-        my $path="$HOME/interpro_scan";
+        my $path="$HOME/interproscan";
 
         print "The default path of installation for  InterProScan is [$path], Give new path if you want to change: ";
         my $option_change_path=<STDIN>;
@@ -601,28 +592,16 @@ foreach my $ext_prog(keys %external_prog){
 
        eval{
         mkdir($path);
-        my @iprscan_file=@{$external_prog{$ext_prog}};
-        
-        foreach my $file(@iprscan_file){
-           $file=~s/\s//g;
-           chomp($file);
-           print "$file\n";
-           # system("wget $file -P $path");
-           system("chmod -R 777 $path"); 
-           chdir("$path");
-           my @program_path=split(/\//,$file);
-           my $program_name=pop(@program_path);
-           chomp($program_name);
-           system("gunzip -c $program_name | tar -xvf -");
-           chdir($Bin);     
-        }
-        chdir("$path/iprscan");
-        system("perl Config.pl");
-        chdir($Bin);
-      };
-      if($@){
+        chdir($path);
+        system("wget $external_prog{$ext_prog}");
+        system("wget $external_prog{iprscan_md}");
+        system("md5sum -c interproscan-5.9-50.0-64-bit.tar.gz.md5");
+        system("tar -pxvzf interproscan-5.9-50.0-64-bit.tar.gz");
+        chdir($Bin);      
+       };
+       if($@){
          die($!);
-      }
+       }
      }
    }     
 }
