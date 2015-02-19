@@ -26,6 +26,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK $db_name $db_dir);
 sub mapPartialSequence {
 
     my($group_file)=(shift);
+    my($parameter)=(shift);
     my(%out_dir)=%{(shift)};
     $db_dir=(shift);
     $db_name=(shift);
@@ -37,9 +38,9 @@ sub mapPartialSequence {
     my($groupforgene)=Cluster::readGroupForGene($group_file); 
 
     ######## Parse all similarity file to find best partial and full length match #####
-    my($superfamily_abc_file)=parseAllSimilarity($db_dir,$db_name,$out_dir{mcl_dir},$groupforgene,$homolog_group); 
+    my($superfamily_abc_file)=parseAllSimilarity($db_dir,$db_name,$parameter,$out_dir{super_homolog_dir},$groupforgene,$homolog_group); 
 
-    my $single_link_output=cluster_by_single_link($db_dir,$db_name,$out_dir{mcl_dir},$superfamily_abc_file);
+    my $single_link_output=cluster_by_single_link($db_dir,$db_name,$out_dir{super_homolog_dir},$superfamily_abc_file);
 
     open(MCL_OUT,"$single_link_output");
     my @mcl_groups=<MCL_OUT>;
@@ -56,11 +57,17 @@ sub parseAllSimilarity {
 
     my($db_dir)=(shift);
     my($db_name)=(shift);
+    my(%parameter)=%{(shift)};
     my($mcl_out_dir)=(shift);
     my(%groupforgene)=%{(shift)};
     my(%homolog_group)=%{(shift)};
     
     my $superfamily_abc_file="$Bin/$mcl_out_dir/superfamily_abc_file.abc";
+    
+    my $identity=$parameter{IDENTITY_THRESHOLD};
+    my $similarity=$parameter{SIMILARITY_THRESHOLD};
+    my $query_coverage=$parameter{QUERY_COVERAGE_THRESHOLD};
+    my $subject_coverage=$parameter{SUBJECT_COVERAGE_THRESHOLD};
     
     open(ABC_FILE,">$superfamily_abc_file");
     
@@ -71,7 +78,7 @@ sub parseAllSimilarity {
 
     my %query_check=();
      
-    my($stmt_truncated_query)="Select * from Similarity where query_length<=subject_length and pair_relation='TRUNCATED' ORDER BY query_id, bitscore, evalue";
+    my($stmt_truncated_query)="Select * from Similarity where query_length<=subject_length and (percent_identity>=$identity and percent_similarity>=$similarity) and (query_coverage>=$query_coverage or subject_coverage>=$subject_coverage) and (pair_relation IS NOT 'BEST' or pair_relation IS NOT 'SELF_MATCH') ORDER BY query_id, bitscore, evalue";
     my($get_truncated_query)=SQLiteDB::get_record($db_dir,$db_name,$stmt_truncated_query); 
     
     if(scalar(@{$get_truncated_query})>=1){  
@@ -129,7 +136,7 @@ sub parseAllSimilarity {
 
     my %truncated_target=();
     
-    my($stmt_truncated_target)="Select * from Similarity where query_length > subject_length and pair_relation='TRUNCATED' ORDER BY subject_id, bitscore, evalue";
+    my($stmt_truncated_target)="Select * from Similarity where query_length > subject_length and (percent_identity>=$identity and percent_similarity>=$similarity) and (query_coverage>=$query_coverage or subject_coverage>=$subject_coverage) and (pair_relation IS NOT 'BEST' or pair_relation IS NOT 'SELF_MATCH') ORDER BY subject_id, bitscore, evalue";
     my($get_truncated_target)=SQLiteDB::get_record($db_dir,$db_name,$stmt_truncated_target); 
     
     if(scalar(@{$get_truncated_target})>=1){  
@@ -427,7 +434,7 @@ sub mapHomologGroup {
 
 
     #### SUPER HOMOLOG FAMILY FILE #####    
-    my $homolog_cluster_file="$out_dir{result_dir}/homolog_cluster.txt";
+    my $homolog_cluster_file="$out_dir{result_dir}/super_homolog_cluster.txt";
     open(MAP_GENE,">$homolog_cluster_file"); 
 
  

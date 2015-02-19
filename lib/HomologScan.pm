@@ -142,10 +142,18 @@ sub run_compare_reference {
 
           my $count_groups=keys(%{$group_for_query});
           
+          system("cp $cluster_file $out_dir{result_dir}/reference_model_cluster.txt");
+          
+          $cluster_file="$out_dir{result_dir}/reference_model_cluster.txt";
+          
           print "Creating HMM Model for gene cluster\n";
           
           my($ref_group_gene)=GroupModel($db_dir,$db_name,$cluster_file,$count_groups,\%config_param,\%homologue_group,$group_for_query,\%group_gene,\%out_dir,$cpu_core,$tmp_dir);    
          
+          system("cp $out_dir{hmm_db_dir}/$config_param{DATABASE}->{MODEL_DB} -t $out_dir{result_dir}");
+      
+          system("cp $out_dir{hmm_db_dir}/$config_param{DATABASE}->{SEQUENCE_DB} -t $out_dir{result_dir}");
+          
           my $end_reference_scan = time;
           
           my $run_time_reference=$end_reference_scan-$start_reference_scan;
@@ -560,14 +568,39 @@ if($config_param{ACTIVATE_ANALYSIS}->{PREDICT_HMM}=~/YES/i){
 
       system("cp $out_dir{hmm_db_dir}/$config_param{DATABASE}->{MODEL_DB} -t $out_dir{result_dir}");
       
-      system("cp $out_dir{hmm_db_dir}/$config_param{DATABASE}->{SEQUENCE_DB} -t $out_dir{result_dir}");
-          
-      print "CLUSTER HMM FAMILY INTO SUPER-HOMOLOG FAMILY \n";  
-             
-      my $homolog_cluster_file=PartialMap::mapPartialSequence($cluster_file,\%out_dir,$db_dir,$db_name); 
+      system("cp $out_dir{hmm_db_dir}/$config_param{DATABASE}->{SEQUENCE_DB} -t $out_dir{result_dir}");        
+       
   }
   
 } #### END OF BLOCK HOMOLOG SCAN  
+
+
+####### PARTIAL GENE MAPPING and SUPER-HOMOLOG PREDICTION ######
+
+sub run_super_homolog_prediction {
+
+    $db_dir=(shift);
+    $db_name=(shift);
+    my %config_param=%{(shift)};
+    my %out_dir=%{(shift)};
+    my $output_dir=(shift);
+    my $tmp_dir=(shift);
+    
+    
+	if($config_param{ACTIVATE_ANALYSIS}->{PREDICT_SUPER_HOMOLOG}=~/YES/i){
+	
+	     ##### DECLARE GLOBAL VARAIBLES ####
+    
+         my $cluster_file=$config_param{GROUP}->{HMM_CLUSTER_FILE};
+         
+         my $parameters=$config_param{PARAMETER};          
+	
+	     print "CLUSTER HMM FAMILY INTO SUPER-HOMOLOG FAMILY \n";  
+
+         my $homolog_cluster_file=PartialMap::mapPartialSequence($cluster_file,$parameters,\%out_dir,$db_dir,$db_name);
+	}
+
+}
 
 
 ##################### ORTHOLOG PREDICTION PHASE ###################################################

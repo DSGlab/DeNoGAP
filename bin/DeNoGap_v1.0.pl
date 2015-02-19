@@ -516,8 +516,6 @@ if($config_param{ACTIVATE_ANALYSIS}->{COMPARE_REFERENCE} and $config_param{ACTIV
      ######## create output directory for homolog search #####
      my $project_name=$config_param{OUTPUT_DIRECTORY}->{PROJECT_DIR_NAME};
      my $analysis="compare_reference";
-     
-     mkdir("$output_dir/$project_name");
 
      my $homolog_dir_hash =BuildOutputDirectory($project_name,$analysis,$output_dir,$tmp_dir);
           
@@ -534,8 +532,6 @@ if($config_param{ACTIVATE_ANALYSIS}->{PREDICT_HMM} and $config_param{ACTIVATE_AN
      ######## create output directory for homolog search #####
      my $project_name=$config_param{OUTPUT_DIRECTORY}->{PROJECT_DIR_NAME};
      my $analysis="predict_hmm";
-     
-     mkdir("$output_dir/$project_name");
 
      my $homolog_dir_hash = BuildOutputDirectory($project_name,$analysis,$output_dir,$tmp_dir);
           
@@ -543,6 +539,23 @@ if($config_param{ACTIVATE_ANALYSIS}->{PREDICT_HMM} and $config_param{ACTIVATE_AN
   
   exit;               
 } #### END OF HMM FAMILY PREDICTION BLOCK #####
+
+
+####### RUN Super-homolog prediction: This step find partial gene family with significant match to the larger family #####
+
+if($config_param{ACTIVATE_ANALYSIS}->{PREDICT_SUPER_HOMOLOG} and $config_param{ACTIVATE_ANALYSIS}->{PREDICT_SUPER_HOMOLOG}=~/^YES$/i){
+
+     ######## create output directory for homolog search #####
+     my $project_name=$config_param{OUTPUT_DIRECTORY}->{PROJECT_DIR_NAME};
+     my $super_homolog_dir="$output_dir/$project_name/SUPER_HOMOLOG";
+     my $analysis="partial_map";
+     
+     my $homolog_dir_hash = BuildOutputDirectory($project_name,$analysis,$output_dir,$tmp_dir);
+          
+     HomologScan::run_super_homolog_prediction($db_dir,$db_name,\%config_param,$homolog_dir_hash,$output_dir,$tmp_dir); 
+  
+  exit;               
+} #### END OF Super homolog FAMILY PREDICTION BLOCK #####
 
 ####### RUN HOMOLOG SCAN PHASE 3: ORTHOLOG PREDICTION ################
 
@@ -552,7 +565,6 @@ if(($config_param{ACTIVATE_ANALYSIS}->{PREDICT_ORTHOLOG} and $config_param{ACTIV
      my $project_name=$config_param{OUTPUT_DIRECTORY}->{PROJECT_DIR_NAME};
      my $analysis="predict_ortholog";
      
-     mkdir("$output_dir/$project_name");
 
      my $homolog_dir_hash = BuildOutputDirectory($project_name,$analysis,$output_dir,$tmp_dir);
           
@@ -624,7 +636,7 @@ if($config_param{ACTIVATE_ANALYSIS}->{CORE_GENOME} and $config_param{ACTIVATE_AN
          my $cluster_file=$config_param{GROUP}->{ORTHOLOG_CLUSTER_FILE};
          my $core_seq_dir="$output_dir/$project_name/CORE_SEQ";
          my $core_aln_dir="$output_dir/$project_name/CORE_ALN";
-         my $core_alignment_file=$config_param{PARAMETERS}->{CORE_ALIGNMENT_FILE};
+         my $core_alignment_file="$output_dir/$project_name/$config_param{PARAMETERS}->{CORE_ALIGNMENT_FILE}";
          my $core_threshold=$config_param{PARAMETERS}->{CORE_THRESHOLD};
          my $sequence_type=$config_param{PARAMETERS}->{SEQUENCE_TYPE};
          my $include_outgroup=$config_param{PARAMETERS}->{INCLUDE_OUTGROUP};
@@ -841,16 +853,17 @@ sub BuildOutputDirectory {
        $out_dir{tmp_log}=$tmp_dir;
        
 
-     if($analysis eq "compare_reference" or $analysis eq "predict_hmm" or $analysis eq "predict_ortholog"){
+     if($analysis eq "compare_reference" or $analysis eq "predict_hmm" or $analysis eq "partial_map" or $analysis eq "predict_ortholog"){
 
-       my $homolog_dir="$output/$project_name/HOMOLOG_SCAN";            $out_dir{homolog_dir}=$homolog_dir;
+       my $homolog_dir="$output/$project_name";                         $out_dir{homolog_dir}=$homolog_dir;
        my $result_dir="$output/$project_name/RESULT";                   $out_dir{result_dir}=$result_dir;
+       my $super_homolog_dir="$homolog_dir/SUPER_HOMOLOG";              $out_dir{super_homolog_dir}=$super_homolog_dir;
        my $ortholog_dir="$homolog_dir/ORTHOLOG";                        $out_dir{ortholog_dir}=$ortholog_dir;
        my $pair_distance="$ortholog_dir/PAIR_DISTANCE";                 $out_dir{pair_distance}=$pair_distance;
        my $ortholog_cluster="$ortholog_dir/ORTHO_CLUSTER";              $out_dir{ortholog_cluster}=$ortholog_cluster;
        my $ortholog_pair="$ortholog_dir/PAIR_ORTHOLOG";                 $out_dir{pair_ortholog}=$ortholog_pair;
        my $inparalog_pair="$ortholog_dir/PAIR_INPARALOG";               $out_dir{pair_inparalog}=$inparalog_pair;
-       #my $incongruent_pair="$ortholog_dir/PAIR_INCONGRUENT";           $out_dir{pair_incongruent}=$incongruent_pair;
+       #my $incongruent_pair="$ortholog_dir/PAIR_INCONGRUENT";          $out_dir{pair_incongruent}=$incongruent_pair;
        my $homolog_alignment="$ortholog_dir/ALIGNMENT";                 $out_dir{homolog_alignment}=$homolog_alignment;
        my $similarity_dir="$homolog_dir/BEST_PAIR";                     $out_dir{similarity_dir}=$similarity_dir;
        my $all_similarity_dir="$homolog_dir/ALL_PAIR";                  $out_dir{all_similarity_dir}=$all_similarity_dir;
@@ -867,6 +880,7 @@ sub BuildOutputDirectory {
 
        mkdir($homolog_dir);
        mkdir($result_dir);
+       mkdir($super_homolog_dir);
        mkdir($ortholog_dir);
        mkdir($pair_distance);
        mkdir($ortholog_cluster);
