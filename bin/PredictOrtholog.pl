@@ -200,7 +200,7 @@ sub create_msa{
                 
         if(scalar($family_sequence)>1){  
         
-             open(NEW_FASTA_SEQ,">$tmp_process_dir/$cluster_id.fasta");    
+             open(NEW_FASTA_SEQ,">$tmp_process_dir/$cluster_id.fasta");              
                   
              foreach my $row(@{$family_sequence}){           
                      my @data_column=@{$row};     
@@ -215,8 +215,11 @@ sub create_msa{
                         print NEW_FASTA_SEQ ">$gene_id\n$seq\n";                      
                         $count_new_seq++;
                      }
+
+                     
              }
             close NEW_FASTA_SEQ;
+
         } 
         
         ########## PERFORM MULTIPLE SEQUENCE ALIGNMENT ########
@@ -386,7 +389,7 @@ sub check_overlap{
     my($alignment_dir)=(shift);
     my(%db_distance_pair)=%{(shift)};
     my(%distance_pair)=%{(shift)};
-
+    
     my %alignment_type=();
 
     open(ALN_SEQ,">$alignment_dir/$cluster_id.aln.txt");
@@ -474,24 +477,32 @@ sub check_overlap{
                   
                   my $aln_region_2=substr($seq_2,$max_start,$len_align_region);
                   
-                  my @base_region_1 = $aln_region_1 =~ /(\w)/g;
+                  my @base_region_1 =split('',$aln_region_1);                  
+                  my @base_region_2 = split('',$aln_region_2);
+
+                  my $shortest_seq_len=0;
+                  my $min_aligned_column=0;
+
+                  if($len_seq_1<=$len_seq_2){
+                     $shortest_seq_len=$len_seq_1;
+                  }else{
+                     $shortest_seq_len=$len_seq_2;
+                  }
+
+
+                  for(my $i=0;$i<scalar(@base_region_1);$i++){
+
+                      if($base_region_1[$i]=~/\w/ and $base_region_2[$i]=~/\w/){
+                         $min_aligned_column++;
+                      }
+                  }
                   
-                  my $count_base_region_1=scalar(@base_region_1);
+                  my $aln_region=$min_aligned_column/$shortest_seq_len;
                   
-                  my @base_region_2 = $aln_region_2 =~ /(\w)/g;
-                  
-                  my $count_base_region_2=scalar(@base_region_2);
-                                   
-                  my $aln_region_seq_1=($count_base_region_1/$len_seq_1);
-                  
-                  my $aln_region_seq_2=($count_base_region_2/$len_seq_2);
-                  
-                  if($aln_region_seq_1 >= 0.5 or $aln_region_seq_2 >= 0.5){
+                  if($aln_region >= 0.5){
                       $alignment_type{$seq_id_1}->{$seq_id_2}=1;
-                      $alignment_type{$seq_id_2}->{$seq_id_1}=1;
                   }else{
                       $alignment_type{$seq_id_1}->{$seq_id_2}=0;
-                      $alignment_type{$seq_id_2}->{$seq_id_1}=0;
                   }  
         }
     }

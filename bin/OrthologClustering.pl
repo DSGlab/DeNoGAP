@@ -131,131 +131,132 @@ foreach my $cluster_id(keys %homolog_cluster){
        my $cluster_count=1;
 
        my %search_ids=();
+       my %reciprocal_pair=();
+       my %pair_total_gene=();
 
        NEW_CLUSTER:
    
        foreach my $id(keys %list_ids){
 
          %search_ids=();
+         %reciprocal_pair=();
+         %pair_total_gene=();
 
-         my %search_genome=();
+         print "Start:$id\n";
 
-         my $start_genome=$list_ids{$id};
-
-        # print "Start:$id\t$start_genome\n";
-
-         $search_ids{$id}=$start_genome;
-         $search_genome{$start_genome}=$start_genome;
-        
-         my $pair_stmt="Select distinct(idB),taxaB from $cluster_id where idA='$id' and taxaA='$start_genome'";
-         my($get_all_pairs)=SQLiteDB::get_record($tmp_dir,$cluster_id,$pair_stmt);
-
-         my %reciprocal_pair=();
          my $search_id='';
-         my $search_genome='';
 
-         if(scalar(@{$get_all_pairs})>=1){
+         $search_id=$search_id."'".$id."'";
 
-            foreach my $row(@{$get_all_pairs}){
+         $pair_total_gene{$id}=$list_ids{$id};
+
+         RESEARCH_PAIR:
+        
+        my $pair_stmt="Select distinct(idA),taxaA,idB,taxaB,divergence from $cluster_id where idB IN ($search_id) UNION Select distinct(idB),taxaB,idA,taxaA,divergence from $cluster_id where idA IN ($search_id)";
+        my($get_all_pairs)=SQLiteDB::get_record($db_dir,$cluster_id,$pair_stmt);
+
+        my $is_new_genome=0;
+
+        if(scalar(@{$get_all_pairs})>=1){          
+
+           foreach my $row(@{$get_all_pairs}){
      
               my @column=@{$row};
-              my $pair_id=$column[0];
-              my $pair_genome=$column[1];
-         
-              $reciprocal_pair{$pair_id}=$pair_genome;
-              $search_id=$search_id.",'".$pair_id."'";
-              $search_genome=$search_genome.",'".$pair_genome."'";
+              my $pair_idA=$column[0];
+              my $pair_genomeA=$column[1];
+              my $pair_idB=$column[2];
+              my $pair_genomeB=$column[3];
+              my $divergence=$column[4];
+
+              $reciprocal_pair{$pair_idB}->{$pair_idA}=$divergence;
+              $reciprocal_pair{$pair_idA}->{$pair_idB}=$divergence;
+
+              $pair_total_gene{$pair_idA}=$pair_genomeA;
+              $pair_total_gene{$pair_idB}=$pair_genomeB;
+
+             if($search_id=~/$pair_idA/){
+                 next;
+             }else{
+                 $search_id=$search_id.",'".$pair_idA."'";                                              
+                 $is_new_genome=1; 
+             }        
            }
-         }
-         $search_genome=~s/^\,//g;            
-         $search_id=~s/^\,//g;
-           
-             
-         foreach my $reciprocal_id(keys %reciprocal_pair){
-
-                 my $reciprocal_genome=$reciprocal_pair{$reciprocal_id};
-
-                 ###### Find reciprocal gene in species N for all gene (i..n-1) from species (j..jn-1) ####
-
-                 my $best_ortho_stmt="Select distinct(idB),taxaB,taxaA from $cluster_id where idA IN ($search_id) and taxaA IN ($search_genome) and taxaB='$reciprocal_genome'";
-                 my($get_best_ortholog)=SQLiteDB::get_record($tmp_dir,$cluster_id,$best_ortho_stmt);
-
-                 my %found_ortholog=();   #### record 1 if gene C from species C is reciprocal best match for all gene a..n else 0 ###
-
-                 if(scalar(@{$get_best_ortholog})>=1){
-
-                      foreach my $row(@{$get_best_ortholog}){
-                       
-                             my @column=@{$row};
-
-                             my $rec_ortholog=$column[0]; 
-                             my $target_genome=$column[2];  
-
-                             #print "$target_genome\t$rec_ortholog\t$reciprocal_id\n";
-
-                             $found_ortholog{$target_genome}->{$rec_ortholog}=1;
-                      }
-                 }
-
-                 #### Check for true ortholog pair ###
-                 my $num_genome=keys(%found_ortholog);
-                 my %count_ortholog_genome=();
-                   
-                 foreach my $genome(keys %found_ortholog){
-
-                      my %ortholog_id=%{$found_ortholog{$genome}};
-
-                      foreach my $ortho_id(keys %ortholog_id){
-
-                           if(!defined($count_ortholog_genome{$ortho_id})){
-                              $count_ortholog_genome{$ortho_id}=1;
-                           }else{
-                              $count_ortholog_genome{$ortho_id}++;
-                           }
-                      }
-                 }
-                 
-                 ##### If true ortholog than add for printing to the file #####
-                 foreach my $ortho_id(keys %count_ortholog_genome){
-
-                      my $count_genome=$count_ortholog_genome{$ortho_id};
-
-                      my $is_true_ortholog=($count_genome/$num_genome)*100;
-
-                    #  print "$reciprocal_genome\t$ortho_id\t$is_true_ortholog\n";
-
-                      if($is_true_ortholog>=$transitivity_threshold){
-                        $search_ids{$ortho_id}=$reciprocal_genome;
-                        $search_genome{$reciprocal_genome}=$reciprocal_genome;
-                      }
-                 }  
-                       
-         }
-           
-        print SINGLE_LINK "$cluster_id".".$cluster_count:\t";
-
-        my $remove_id_record='';
-
-        foreach my $protein_id(keys %search_ids){ 
-             
-             my $ortholog_genome=$search_ids{$protein_id};
-             print SINGLE_LINK "$ortholog_genome|$protein_id\t";
-                
-             delete($list_ids{$protein_id});
-
-             $remove_id_record=$remove_id_record.",'".$protein_id."'";   
         }
+
+         if($is_new_genome==1){
+             $search_id=~s/^\,//g;
+             goto RESEARCH_PAIR;
+         }
+          
+         ####### check weight for each pair ##############     
+
+         my $remove_id_record='';
+
+         print SINGLE_LINK "$cluster_id".".$cluster_count:\t";
+
+         my $total_count=keys(%pair_total_gene);
+    
+        foreach my $pair_geneA(keys %pair_total_gene){
+
+                my $similar_count=0;
+
+                my %similar_pair=();
+
+                foreach my $pair_geneB(keys %pair_total_gene){
+
+                      unless($pair_geneA eq $pair_geneB){
+
+                          if($reciprocal_pair{$pair_geneA}->{$pair_geneB}){
+
+                              my $distance=$reciprocal_pair{$pair_geneA}->{$pair_geneB};
+
+                              $similar_pair{$pair_geneA}->{$pair_geneB}=$distance;
+
+                              $similar_count++;
+                          } 
+                      }
+                }
+
+                my $percent_transitivity=($similar_count/$total_count)*100;
+
+                if($percent_transitivity>=$transitivity_threshold){
+
+                     my $genome=$pair_total_gene{$pair_geneA};
+
+                     print SINGLE_LINK "$genome|$pair_geneA\t";
+
+                     delete($list_ids{$pair_geneA});
+
+                     $remove_id_record=$remove_id_record.",'".$pair_geneA."'"; 
+                }
+        }
+        
         $remove_id_record=~s/^\,//g;
+
+        if($remove_id_record eq ''){
+
+               my $genome=$pair_total_gene{$id};
+
+               print SINGLE_LINK "$genome|$id\t";
+
+               #print "$genome|$id\n";
+
+               delete($list_ids{$id});
+
+               $remove_id_record=$remove_id_record."'".$id."'"; 
+
+               $remove_id_record=~s/^\,//g; 
+        }
 
         #### delete pair record for all clustered true ortholog ids from database ####
         my $delete_pair_record="DELETE FROM $cluster_id where idA IN ($remove_id_record) or idB IN ($remove_id_record)";
-        SQLiteDB::execute_sql($tmp_dir,$cluster_id,$delete_pair_record);
+        SQLiteDB::execute_sql($db_dir,$cluster_id,$delete_pair_record);
 
         print SINGLE_LINK "\n"; 
            
         $cluster_count++;
-        goto NEW_CLUSTER; 
 
+        goto NEW_CLUSTER; 
    }
    close SINGLE_LINK;
 
