@@ -148,8 +148,18 @@ foreach my $mod(@interproscan_module){
 print "Checking if you have required external program installed\n";
 
 foreach my $ext_prog(keys %external_prog){
+
     ### Install MUSCLE ###
     if($ext_prog eq 'muscle'){
+
+       print "Do you want to Install MUSCLE alignment program on your system? ( Y or N):";
+       my $option_install=<STDIN>;
+       chomp($option_install);
+
+       if($option_install eq "N" or $option_install eq "n"){
+          next;
+       }
+
        eval{
         mkdir("$HOME/muscle");        
         system("wget $external_prog{$ext_prog} -P $HOME/muscle");
@@ -181,6 +191,15 @@ foreach my $ext_prog(keys %external_prog){
     }
     #### INSTALL KALIGN #####
     elsif($ext_prog eq 'kalign'){
+
+       print "Do you want to Install Kalign alignment program on your system? ( Y or N): ";
+       my $option_install=<STDIN>;
+       chomp($option_install);
+
+       if($option_install eq "N" or $option_install eq "n"){
+          next;
+       }
+
       eval{
         mkdir("$HOME/kalign");        
         system("wget $external_prog{$ext_prog} -P $HOME/kalign");
@@ -198,6 +217,15 @@ foreach my $ext_prog(keys %external_prog){
     }
     ##### INSTALL HMMER ######
     elsif($ext_prog eq 'hmmer'){
+
+       print "Do you want to Install HMMER program on your system? ( Y or N): ";
+       my $option_install=<STDIN>;
+       chomp($option_install);
+
+       if($option_install eq "N" or $option_install eq "n"){
+          next;
+       }
+
       eval{
         mkdir("$HOME/hmmer");        
         system("wget $external_prog{$ext_prog} -P $HOME/hmmer");
@@ -236,6 +264,14 @@ foreach my $ext_prog(keys %external_prog){
     #### INSTALL MCL #####
     elsif($ext_prog eq 'mcl'){
 
+       print "Do you want to Install MCL program on your system? ( Y or N): ";
+       my $option_install=<STDIN>;
+       chomp($option_install);
+
+       if($option_install eq "N" or $option_install eq "n"){
+          next;
+       }
+
        eval{
         mkdir("$HOME/mcl");        
         system("wget $external_prog{$ext_prog} -P $HOME/mcl");
@@ -273,6 +309,15 @@ foreach my $ext_prog(keys %external_prog){
     }
     #### INSTALL PHYLIP ####
     elsif($ext_prog eq 'phylip'){
+
+       print "Do you want to Install Phylip package on your system? ( Y or N): ";
+       my $option_install=<STDIN>;
+       chomp($option_install);
+
+       if($option_install eq "N" or $option_install eq "n"){
+          next;
+       }
+
        eval{
         mkdir("$HOME/phylip");        
         system("wget $external_prog{$ext_prog} -P $HOME/phylip");
@@ -311,6 +356,14 @@ foreach my $ext_prog(keys %external_prog){
     #### INSTALL GLIMMER ####
     elsif($ext_prog eq 'glimmer'){
 
+        print "Do you want to Install Glimmer on your system? ( Y or N): ";
+        my $option_install=<STDIN>;
+        chomp($option_install);
+
+       if($option_install eq "N" or $option_install eq "n"){
+          next;
+       }
+
         eval{
         mkdir("$HOME/glimmer");        
         system("wget $external_prog{$ext_prog} -P $HOME/glimmer");
@@ -347,6 +400,15 @@ foreach my $ext_prog(keys %external_prog){
     }
     ### INSTALL PRODIGAL ####
     elsif($ext_prog eq 'prodigal'){
+
+       print "Do you want to Install Prodigal on your system? ( Y or N): ";
+       my $option_install=<STDIN>;
+       chomp($option_install);
+
+       if($option_install eq "N" or $option_install eq "n"){
+          next;
+       }
+
        eval{
         mkdir("$HOME/prodigal");        
         system("wget $external_prog{$ext_prog} -P $HOME/prodigal");
@@ -377,6 +439,15 @@ foreach my $ext_prog(keys %external_prog){
    }
    ##### INSTALL FRAGSCAN #####
    elsif($ext_prog eq 'fragscan'){
+
+       print "Do you want to Install FragGeneScan on your system? ( Y or N): ";
+       my $option_install=<STDIN>;
+       chomp($option_install);
+
+       if($option_install eq "N" or $option_install eq "n"){
+          next;
+       }
+
        eval{
         mkdir("$HOME/frag_gene_scan");   
    
@@ -413,6 +484,16 @@ foreach my $ext_prog(keys %external_prog){
    }
    #### INSTALL GENEMARK ####
    elsif($ext_prog eq 'genemark'){
+
+       print "Do you want to Install GeneMark on your system? ( Y or N): ";
+       my $option_install=<STDIN>;
+       chomp($option_install);
+
+       if($option_install eq "N" or $option_install eq "n"){
+          next;
+       }
+
+
         eval{
         mkdir("$HOME/genemark"); 
 
@@ -507,11 +588,11 @@ foreach my $ext_prog(keys %external_prog){
 
        print "Do you want to Install EMBOSS on your system? ( Y or N): ";
        my $option_install=<STDIN>;
-          chomp($option_install);
+       chomp($option_install);
 
        if($option_install eq "N" or $option_install eq "n"){
           next;
-        }
+       }
 
      if($option_install eq "Y" or $option_install eq "y"){
          print "Installing EMBOSS requires root user permission\n\n";
