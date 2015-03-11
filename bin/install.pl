@@ -18,6 +18,8 @@ print "Set path to the installation directory for external program:\n";
 
 my $HOME=<STDIN>;
 
+chomp($HOME);
+
 if(!defined($HOME)){
   die "ERROR: Installation directory not defined or count not be found\n";
 }
@@ -29,7 +31,7 @@ my $muscle="http://www.drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64
 my $kalign="http://msa.sbc.su.se/downloads/kalign/current.tar.gz";
 my $mcl="http://micans.org/mcl/src/mcl-12-135.tar.gz";
 my $hmmer="http://selab.janelia.org/software/hmmer3/3.1b1/hmmer-3.1b1-linux-intel-x86_64.tar.gz";
-my $phylip="http://evolution.gs.washington.edu/phylip/download/phylip-3.695.tar.gz";
+my $phylip="http://evolution.gs.washington.edu/phylip/download/phylip-3.696.tar.gz";
 my $glimmer="http://ccb.jhu.edu/software/glimmer/glimmer302b.tar.gz";
 my $prodigal="http://prodigal.googlecode.com/files/prodigal.v2_60.linux";
 my $fraggenescan="http://omics.informatics.indiana.edu/mg/get.php?software=FragGeneScan1.16.tar.gz";
@@ -207,7 +209,7 @@ foreach my $ext_prog(keys %external_prog){
         $program_name=~s/\///g;        
         chomp($program_name);
 
-        chdir("$HOME/hmmer/$program_name");
+        chdir("$program_name");
         system("./configure --prefix=$HOME/hmmer");
         system("make");
         system("make install");
@@ -245,7 +247,7 @@ foreach my $ext_prog(keys %external_prog){
         $program_name=~s/\///g;        
         chomp($program_name);
 
-        chdir("$HOME/mcl/$program_name");
+        chdir("$program_name");
         system("./configure --prefix=$HOME/mcl");
         system("make");
         system("make install");
@@ -282,7 +284,7 @@ foreach my $ext_prog(keys %external_prog){
            $program_name=~s/\///g;        
         chomp($program_name);
 
-        chdir("$HOME/phylip/$program_name/src");
+        chdir("$program_name/src");
         system("mv Makefile.unx Makefile");
         system("make install");
         chdir($Bin);
@@ -318,7 +320,7 @@ foreach my $ext_prog(keys %external_prog){
         my $program_name=`ls -d */`;
            $program_name=~s/\///g;        
         chomp($program_name);
-        chdir("$HOME/glimmer/$program_name/src"); 
+        chdir("$program_name/src"); 
         system("make");
         chdir($Bin);
 
@@ -456,7 +458,7 @@ foreach my $ext_prog(keys %external_prog){
      if($option_install eq "Y" or $option_install eq "y"){
 
         my $path="$HOME/sqlite";
-
+        
         print "The default path of installation for SQLITE is [$path], Give new path if you want to change: ";
         my $option_change_path=<STDIN>;
            chomp($option_change_path);
@@ -474,7 +476,7 @@ foreach my $ext_prog(keys %external_prog){
         chdir("$path");      
         my $program_name=`ls -d */`;
         chomp($program_name); 
-        chdir("$path/$program_name");
+        chdir("$program_name");
         system("./configure --prefix=$path");
         system("make");
         system("make install");
